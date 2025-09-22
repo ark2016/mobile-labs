@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart'; // для отображения старых лаб
 import 'lab1.dart' as lab1;
 import 'lab2.dart' as lab2;
+import 'lab4.dart' as lab4;
 
 void main() {
   runApp(const MyApp());
@@ -74,6 +75,16 @@ class _LabNavigatorState extends State<LabNavigator> {
                         ? const Icon(CupertinoIcons.check_mark, color: CupertinoColors.activeBlue)
                         : const CupertinoListTileChevron(),
                       backgroundColor: _selectedLabIndex == 1
+                        ? CupertinoColors.systemBlue.withOpacity(0.1)
+                        : null,
+                    ),
+                    CupertinoListTile(
+                      title: const Text('Лаб 4'),
+                      onTap: () => _navigateToLab(const lab4.MyHomePage(title: 'Lab 4'), 2),
+                      trailing: _selectedLabIndex == 2
+                        ? const Icon(CupertinoIcons.check_mark, color: CupertinoColors.activeBlue)
+                        : const CupertinoListTileChevron(),
+                      backgroundColor: _selectedLabIndex == 2
                         ? CupertinoColors.systemBlue.withOpacity(0.1)
                         : null,
                     ),
