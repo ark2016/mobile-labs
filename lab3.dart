@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart'; // для отображения старых лаб
+import 'package:yandex_mapkit/yandex_mapkit.dart';
 import 'lab1.dart' as lab1;
 import 'lab2.dart' as lab2;
 import 'lab4.dart' as lab4;
@@ -8,8 +9,11 @@ import 'letuchka4.dart' as letuchka4;
 import 'lab5/lab51.dart' as lab51;
 import 'lab5/lab52.dart' as lab52;
 import 'lab5/lab53.dart' as lab53;
+import 'lab6.dart' as lab6;
 
 void main() {
+  // Initialize Yandex MapKit with API key
+  AndroidYandexMap.useAndroidViewSurface = false;
   runApp(const MyApp());
 }
 
@@ -140,6 +144,16 @@ class _LabNavigatorState extends State<LabNavigator> {
                         ? const Icon(CupertinoIcons.check_mark, color: CupertinoColors.activeBlue)
                         : const CupertinoListTileChevron(),
                       backgroundColor: _selectedLabIndex == 7
+                        ? CupertinoColors.systemBlue.withOpacity(0.1)
+                        : null,
+                    ),
+                    CupertinoListTile(
+                      title: const Text('Лаб 6'),
+                      onTap: () => _navigateToLab(const lab6.Lab6MapPage(), 8),
+                      trailing: _selectedLabIndex == 8
+                        ? const Icon(CupertinoIcons.check_mark, color: CupertinoColors.activeBlue)
+                        : const CupertinoListTileChevron(),
+                      backgroundColor: _selectedLabIndex == 8
                         ? CupertinoColors.systemBlue.withOpacity(0.1)
                         : null,
                     ),
