@@ -11,6 +11,7 @@ import 'lab5/lab52.dart' as lab52;
 import 'lab5/lab53.dart' as lab53;
 import 'lab6.dart' as lab6;
 import 'rk1.dart' as rk1;
+import 'rk1a.dart' as rk1a;
 
 void main() {
   // Initialize Yandex MapKit with API key
@@ -165,6 +166,16 @@ class _LabNavigatorState extends State<LabNavigator> {
                         ? const Icon(CupertinoIcons.check_mark, color: CupertinoColors.activeBlue)
                         : const CupertinoListTileChevron(),
                       backgroundColor: _selectedLabIndex == 9
+                        ? CupertinoColors.systemBlue.withOpacity(0.1)
+                        : null,
+                    ),
+                    CupertinoListTile(
+                      title: const Text('РК 1А'),
+                      onTap: () => _navigateToLab(const rk1a.RK1A(), 10),
+                      trailing: _selectedLabIndex == 10
+                        ? const Icon(CupertinoIcons.check_mark, color: CupertinoColors.activeBlue)
+                        : const CupertinoListTileChevron(),
+                      backgroundColor: _selectedLabIndex == 10
                         ? CupertinoColors.systemBlue.withOpacity(0.1)
                         : null,
                     ),
