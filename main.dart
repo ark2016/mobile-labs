@@ -10,6 +10,8 @@ import 'lab5/lab51.dart' as lab51;
 import 'lab5/lab52.dart' as lab52;
 import 'lab5/lab53.dart' as lab53;
 import 'lab6.dart' as lab6;
+import 'lab7.dart' as lab7;
+import 'lab8.dart' as lab8;
 import 'rk1.dart' as rk1;
 import 'rk1a.dart' as rk1a;
 
@@ -176,6 +178,26 @@ class _LabNavigatorState extends State<LabNavigator> {
                         ? const Icon(CupertinoIcons.check_mark, color: CupertinoColors.activeBlue)
                         : const CupertinoListTileChevron(),
                       backgroundColor: _selectedLabIndex == 10
+                        ? CupertinoColors.systemBlue.withOpacity(0.1)
+                        : null,
+                    ),
+                    CupertinoListTile(
+                      title: const Text('Лаб 7'),
+                      onTap: () => _navigateToLab(const lab7.Lab7(), 11),
+                      trailing: _selectedLabIndex == 11
+                        ? const Icon(CupertinoIcons.check_mark, color: CupertinoColors.activeBlue)
+                        : const CupertinoListTileChevron(),
+                      backgroundColor: _selectedLabIndex == 11
+                        ? CupertinoColors.systemBlue.withOpacity(0.1)
+                        : null,
+                    ),
+                    CupertinoListTile(
+                      title: const Text('Лаб 8'),
+                      onTap: () => _navigateToLab(const lab8.Lab8FTPClient(), 12),
+                      trailing: _selectedLabIndex == 12
+                        ? const Icon(CupertinoIcons.check_mark, color: CupertinoColors.activeBlue)
+                        : const CupertinoListTileChevron(),
+                      backgroundColor: _selectedLabIndex == 12
                         ? CupertinoColors.systemBlue.withOpacity(0.1)
                         : null,
                     ),
