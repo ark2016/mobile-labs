@@ -1,0 +1,467 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
+
+class Lab10 extends StatefulWidget {
+  const Lab10({super.key});
+
+  @override
+  State<Lab10> createState() => _Lab10State();
+}
+
+class Recipient {
+  String name;
+  String email;
+
+  Recipient({required this.name, required this.email});
+}
+
+class _Lab10State extends State<Lab10> {
+  final List<Recipient> _recipients = [
+    Recipient(name: 'Данила Павлович', email: 'posevin@bmstu.ru'),
+    Recipient(name: 'Данила Павлович', email: 'danila@posevin.com'),
+    Recipient(name: 'Аркадий', email: '7dq9tyom7ze3@mail.ru'),
+    Recipient(name: 'Егор', email: 'egorrr.pro@yandex.ru'),
+  ];
+
+  final TextEditingController _messageController = TextEditingController(
+    text: 'Это тестовое письмо с разными стилями и форматированием!',
+  );
+
+  bool _isSending = false;
+  String _statusMessage = '';
+
+  // SMTP конфигурация
+  final String _smtpUsername = 'A6611688@yandex.ru';
+  final String _smtpPassword = 'yqgnypaygncrbvmz';
+  final String _smtpServer = 'smtp.yandex.ru';
+  final int _smtpPort = 587;
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  void _addRecipient() {
+    setState(() {
+      _recipients.add(Recipient(name: 'Новый получатель', email: 'example@mail.ru'));
+    });
+  }
+
+  void _removeRecipient(int index) {
+    setState(() {
+      _recipients.removeAt(index);
+    });
+  }
+
+
+  String _buildHtmlMessage(String name, String messageText) {
+    return '''
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .logo {
+      max-width: 150px;
+      height: auto;
+    }
+    h1 {
+      color: #2c3e50;
+      font-family: 'Georgia', serif;
+      font-size: 32px;
+      margin: 20px 0;
+    }
+    .greeting {
+      color: #e74c3c;
+      font-family: 'Courier New', monospace;
+      font-size: 24px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+    .message-body {
+      color: #34495e;
+      font-family: 'Verdana', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      margin: 20px 0;
+    }
+    .highlight {
+      background-color: #f39c12;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-family: 'Arial Black', sans-serif;
+    }
+    .fancy-text {
+      color: #9b59b6;
+      font-family: 'Comic Sans MS', cursive;
+      font-size: 20px;
+      font-style: italic;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #3498db;
+      color: #7f8c8d;
+      font-size: 14px;
+      text-align: center;
+    }
+    .signature {
+      color: #16a085;
+      font-family: 'Trebuchet MS', sans-serif;
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="cid:logo@lab10" class="logo" alt="Logo"/>
+    </div>
+
+    <h1>📧 Письмо из Flutter приложения</h1>
+
+    <div class="greeting">Привет, $name!</div>
+
+    <div class="message-body">
+      <p>$messageText</p>
+
+      <p class="fancy-text">
+        Это письмо демонстрирует различные стили оформления текста!
+      </p>
+
+      <p>
+        Вы можете использовать <span class="highlight">выделение текста</span>,
+        <strong>жирный шрифт</strong>,
+        <em>курсив</em>, и многое другое.
+      </p>
+
+      <p style="color: #e67e22; font-size: 18px; font-family: 'Times New Roman', serif;">
+        Каждый параграф может иметь свой уникальный стиль!
+      </p>
+    </div>
+
+    <div class="signature">
+      С наилучшими пожеланиями,<br>
+      Команда разработчиков
+    </div>
+
+    <div class="footer">
+      Отправлено: ${DateTime.now().toString()}<br>
+      Powered by Flutter & Mailer
+    </div>
+  </div>
+</body>
+</html>
+''';
+  }
+
+  Future<void> _sendEmails() async {
+    if (_recipients.isEmpty) {
+      setState(() {
+        _statusMessage = 'Добавьте хотя бы одного получателя';
+      });
+      return;
+    }
+
+    setState(() {
+      _isSending = true;
+      _statusMessage = 'Отправка писем...';
+    });
+
+    try {
+      print('=== SMTP Отправка ===');
+      print('Сервер: $_smtpServer:$_smtpPort');
+      print('От: $_smtpUsername');
+      print('Получателей: ${_recipients.length}');
+
+      final smtpServer = SmtpServer(
+        _smtpServer,
+        port: _smtpPort,
+        ssl: false, // Порт 587 использует STARTTLS, а не SSL
+        username: _smtpUsername,
+        password: _smtpPassword,
+        allowInsecure: false,
+      );
+
+      // Загружаем логотип из assets
+      Uint8List? logoBytes;
+      try {
+        final ByteData data = await rootBundle.load('assets/images/emblem.png');
+        logoBytes = data.buffer.asUint8List();
+        print('Логотип загружен: ${logoBytes.length} байт');
+      } catch (e) {
+        print('Логотип не загружен: $e');
+      }
+
+      int successCount = 0;
+      int failCount = 0;
+
+      for (var recipient in _recipients) {
+        try {
+          final message = Message()
+            ..from = Address(_smtpUsername, 'Flutter Lab10')
+            ..recipients.add(recipient.email)
+            ..subject = 'Привет ${recipient.name}'
+            ..html = _buildHtmlMessage(recipient.name, _messageController.text);
+
+          // Добавляем логотип, если он загружен
+          if (logoBytes != null) {
+            message.attachments = [
+              StreamAttachment(Stream.value(logoBytes), 'image/png', fileName: 'emblem.png')
+                ..location = Location.inline
+                ..cid = '<logo@lab10>'
+            ];
+          }
+
+          await send(message, smtpServer).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw Exception('Timeout при отправке письма');
+            },
+          );
+
+          successCount++;
+          print('✓ Письмо отправлено: ${recipient.email}');
+        } catch (e) {
+          failCount++;
+          print('✗ Ошибка для ${recipient.email}: $e');
+        }
+      }
+
+      setState(() {
+        _isSending = false;
+        _statusMessage = 'Успешно отправлено: $successCount, Ошибок: $failCount';
+      });
+    } on MailerException catch (e) {
+      print('MailerException: ${e.message}');
+      for (var p in e.problems) {
+        print('  ${p.code}: ${p.msg}');
+      }
+      String errorDetails = 'Ошибка SMTP: ${e.message}';
+      setState(() {
+        _isSending = false;
+        _statusMessage = errorDetails;
+      });
+    } catch (e) {
+      print('Общая ошибка: $e');
+      setState(() {
+        _isSending = false;
+        _statusMessage = 'Ошибка: $e';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('Лаб 10 - Email SMTP'),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                primary: false,
+                padding: const EdgeInsets.all(16),
+                children: [
+                  // Заголовок таблицы получателей
+                  const Text(
+                    'Получатели',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Таблица получателей
+                  for (var entry in _recipients.asMap().entries)
+                    Builder(
+                      builder: (context) {
+                        int index = entry.key;
+                        Recipient recipient = entry.value;
+
+                        return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemGrey6,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Получатель ${index + 1}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => _removeRecipient(index),
+                                  child: const Icon(
+                                    CupertinoIcons.delete,
+                                    color: CupertinoColors.destructiveRed,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            CupertinoTextField(
+                              placeholder: 'Имя',
+                              controller: TextEditingController(text: recipient.name),
+                              onChanged: (value) {
+                                setState(() {
+                                  _recipients[index].name = value;
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            CupertinoTextField(
+                              placeholder: 'Email',
+                              controller: TextEditingController(text: recipient.email),
+                              keyboardType: TextInputType.emailAddress,
+                              onChanged: (value) {
+                                setState(() {
+                                  _recipients[index].email = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                      },
+                    ),
+
+                  // Кнопка добавления получателя
+                  CupertinoButton(
+                    onPressed: _addRecipient,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(CupertinoIcons.add_circled),
+                        SizedBox(width: 8),
+                        Text('Добавить получателя'),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Поле для текста письма
+                  const Text(
+                    'Текст письма',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  CupertinoTextField(
+                    controller: _messageController,
+                    placeholder: 'Введите текст письма...',
+                    maxLines: 5,
+                    padding: const EdgeInsets.all(12),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Информация о настройках SMTP
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemBlue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Настройки SMTP',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Сервер: $_smtpServer:$_smtpPort (STARTTLS)'),
+                        Text('От: $_smtpUsername'),
+                        const Text('Формат: HTML с логотипом'),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Кнопка отправки
+                  CupertinoButton.filled(
+                    onPressed: _isSending ? null : _sendEmails,
+                    child: _isSending
+                        ? const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CupertinoActivityIndicator(color: CupertinoColors.white),
+                              SizedBox(width: 10),
+                              Text('Отправка...'),
+                            ],
+                          )
+                        : const Text('Отправить письма'),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Статус отправки
+                  if (_statusMessage.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _statusMessage.contains('Успешно')
+                            ? CupertinoColors.systemGreen.withOpacity(0.2)
+                            : CupertinoColors.systemRed.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        _statusMessage,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _statusMessage.contains('Успешно')
+                              ? CupertinoColors.systemGreen.darkColor
+                              : CupertinoColors.systemRed.darkColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
